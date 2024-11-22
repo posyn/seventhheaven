@@ -1,0 +1,1 @@
+# Hashing functions for tickers/industries
