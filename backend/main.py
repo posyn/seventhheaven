@@ -1,7 +1,7 @@
-# main.py in /Users/collin/seventhheaven/backend/
+# main.py in /Users/collin/seventhheaven/
 
 from fastapi import FastAPI
-from .routes import api_router  # Since routes.py is in the same directory
+from backend.routes import api_router  # Changed to an absolute import
 
 app = FastAPI()
 

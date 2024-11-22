@@ -1,56 +1,32 @@
 # AI summarization and sentiment analysis
-
 # backend/app/services/ai_service.py
 
 import os
 import hashlib
 import json
 from datetime import datetime
-from typing import List, Dict
+from typing import Optional, Dict
 from pydantic import BaseModel
-from openai import OpenAI
+from dotenv import load_dotenv
 from backend.app import SessionLocal, DataObjectsTable
 from .models import DataObject
-import hashlib
-from .models import DataObject
-from datetime import datetime
-
-def process_data_snippet(market_data):
-    try:
-        headline = f"Market data for {market_data['ticker']}"
-        summary = "Summary of market data..."  # Example - Replace with AI-generated summary
-        interpretation = "Interpretation of market data..."  # Example - Replace with AI-generated interpretation
-
-        return DataObject(
-            headline=headline,
-            date_time=datetime.now(),
-            ticker=market_data["ticker"],
-            industry="Finance",
-            sentiment="neutral",  # Placeholder sentiment - should be generated through AI
-            summary=summary,
-            interpretation=interpretation,
-            hash=hashlib.sha256(f"{market_data['ticker']}{datetime.now()}".encode()).hexdigest()
-        )
-    except Exception as e:
-        print(f"Error processing data snippet: {e}")
-        return None
-
+from openai import OpenAI  # Assuming OpenAI client is valid for NVIDIA integration
 
 # Load environment variables from .env file (for local development)
-from dotenv import load_dotenv
 load_dotenv()
 
 # Retrieve NVIDIA API key from environment variables
-NVAPI_KEY = os.environ.get('nvapi_key')
+NVAPI_KEY = os.getenv('nvapi_key')
 if not NVAPI_KEY:
     raise ValueError("No NVAPI_KEY found in environment variables.")
 
-# Initialize OpenAI client for NVIDIA API
+# Initialize OpenAI client for NVIDIA API (assuming OpenAI library works for this integration)
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=NVAPI_KEY
 )
 
+# Utility to generate hash
 def generate_hash(content: str) -> str:
     """
     Generates a SHA-256 hash of the provided content string.
@@ -58,7 +34,17 @@ def generate_hash(content: str) -> str:
     sha_signature = hashlib.sha256(content.encode('utf-8')).hexdigest()
     return sha_signature
 
-def process_data_snippet(snippet: str, date_time: datetime):
+# Function to process a market data snippet using the AI model
+def process_data_snippet(snippet: str, date_time: datetime) -> Optional[DataObject]:
+    """
+    This function processes market data, summarizing it with AI and providing interpretation, sentiment, etc.
+    Args:
+        snippet (str): The market data snippet to be processed.
+        date_time (datetime): The date and time of the data snippet.
+    
+    Returns:
+        Optional[DataObject]: A DataObject with all relevant information or None if an error occurs.
+    """
     # Prepare the prompt for the AI model
     prompt = f"""
     Data Snippet:
@@ -86,14 +72,18 @@ def process_data_snippet(snippet: str, date_time: datetime):
     """
 
     # Call the AI model
-    response = client.chat.completions.create(
-        model="nvidia/llama-3.1-nemotron-70b-instruct",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.5,
-        top_p=1,
-        max_tokens=1024,
-        stream=False
-    )
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.1-nemotron-70b-instruct",  # Use the model specified by you
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5,
+            top_p=1,
+            max_tokens=1024,
+            stream=False
+        )
+    except Exception as e:
+        print(f"Error calling AI model: {e}")
+        return None
 
     # Extract the AI's response
     ai_content = response.choices[0].message['content']
@@ -132,3 +122,13 @@ def process_data_snippet(snippet: str, date_time: datetime):
     )
 
     return data_object
+
+# Example usage of the AI processing function (for testing purposes)
+if __name__ == "__main__":
+    example_snippet = "The stock price of ABC Inc. rose by 5% today after announcing its quarterly earnings, which exceeded expectations by 20%."
+    date_time = datetime.now()
+    result = process_data_snippet(example_snippet, date_time)
+    if result:
+        print(result.dict())
+    else:
+        print("Failed to generate a DataObject.")
