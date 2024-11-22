@@ -1,7 +1,7 @@
 # main.py in /Users/collin/seventhheaven/
 
 from fastapi import FastAPI
-from backend.routes import api_router  # Changed to an absolute import
+from .routes import api_router
 
 app = FastAPI()
 
