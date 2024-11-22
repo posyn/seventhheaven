@@ -1,4 +1,3 @@
-# Trading algorithms
 from typing import Optional, Dict, List, Tuple
 from datetime import datetime, timedelta
 import pandas as pd
@@ -7,6 +6,8 @@ from polygon import RESTClient
 from dataclasses import dataclass
 from scipy.stats import norm
 from .models import TradeObject, TechnicalIndicators, MACD, Greeks
+import requests
+import matplotlib.pyplot as plt
 
 @dataclass
 class MarketData:
@@ -23,7 +24,7 @@ class MarketData:
     atr: List[float]
     polygon_data: Dict[str, float]  # Data from Polygon relevant to the ticker
 
-class EnhancedTradingAlgorithm:
+class TradingAlgorithm:
     def __init__(self, polygon_key: str, initial_capital: float = 100000):
         self.client = RESTClient(polygon_key)
         self.initial_capital = initial_capital
@@ -304,3 +305,38 @@ class EnhancedTradingAlgorithm:
         except Exception as e:
             print(f"Error processing ticker {ticker}: {str(e)}")
             return None
+
+    def plot_trade_indicators(self, market_data: MarketData, trade_object: TradeObject) -> None:
+        try:
+            plt.figure(figsize=(14, 8))
+
+            # Plot close prices
+            plt.plot(market_data.close_prices, label='Close Price', color='blue')
+
+            # Plot Bollinger Bands
+            plt.plot(market_data.bollinger_bands['upper'], label='Upper Bollinger Band', color='red', linestyle='--')
+            plt.plot(market_data.bollinger_bands['middle'], label='Middle Bollinger Band', color='orange', linestyle='--')
+            plt.plot(market_data.bollinger_bands['lower'], label='Lower Bollinger Band', color='green', linestyle='--')
+
+            # Plot RSI
+            plt.figure()
+            plt.plot(market_data.rsi, label='RSI', color='purple')
+            plt.axhline(70, color='red', linestyle='--')
+            plt.axhline(30, color='green', linestyle='--')
+            plt.title('RSI Indicator')
+            plt.legend()
+
+            # Plot MACD
+            plt.figure()
+            plt.plot(market_data.macd['macd_line'], label='MACD Line', color='blue')
+            plt.plot(market_data.macd['signal_line'], label='Signal Line', color='orange')
+            plt.title('MACD Indicator')
+            plt.legend()
+
+            plt.xlabel('Time')
+            plt.ylabel('Price')
+            plt.title(f'Trade Indicators for {trade_object.ticker}')
+            plt.legend()
+            plt.show()
+        except Exception as e:
+            print(f"Error plotting trade indicators: {str(e)}")
