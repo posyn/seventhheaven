@@ -1,24 +1,13 @@
-# Entry point for the backend server
+# main.py in /Users/collin/seventhheaven/backend/
+
 from fastapi import FastAPI
-from app.api.routes import api_router
-from app.database import create_tables
-from fastapi.middleware.cors import CORSMiddleware
+from .routes import api_router  # Since routes.py is in the same directory
 
-app = FastAPI(title="Seventh Heaven API")
+app = FastAPI()
 
-# Include API routes
+# Include the central router that aggregates all routes
 app.include_router(api_router)
 
-# CORS configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Update with your frontend URL in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Create tables upon startup
-@app.on_event("startup")
-async def startup_event():
-    create_tables()
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

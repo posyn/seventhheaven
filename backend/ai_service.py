@@ -9,8 +9,32 @@ from datetime import datetime
 from typing import List, Dict
 from pydantic import BaseModel
 from openai import OpenAI
-from app.database import SessionLocal, DataObjectsTable
-from app.models.data_object_model import DataObject
+from backend.app import SessionLocal, DataObjectsTable
+from .models import DataObject
+import hashlib
+from .models import DataObject
+from datetime import datetime
+
+def process_data_snippet(market_data):
+    try:
+        headline = f"Market data for {market_data['ticker']}"
+        summary = "Summary of market data..."  # Example - Replace with AI-generated summary
+        interpretation = "Interpretation of market data..."  # Example - Replace with AI-generated interpretation
+
+        return DataObject(
+            headline=headline,
+            date_time=datetime.now(),
+            ticker=market_data["ticker"],
+            industry="Finance",
+            sentiment="neutral",  # Placeholder sentiment - should be generated through AI
+            summary=summary,
+            interpretation=interpretation,
+            hash=hashlib.sha256(f"{market_data['ticker']}{datetime.now()}".encode()).hexdigest()
+        )
+    except Exception as e:
+        print(f"Error processing data snippet: {e}")
+        return None
+
 
 # Load environment variables from .env file (for local development)
 from dotenv import load_dotenv
