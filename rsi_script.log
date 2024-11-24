@@ -1,0 +1,2 @@
+2024-11-23 17:49:03,827 - INFO - Total tickers retrieved: 11676
+2024-11-23 17:49:03,828 - ERROR - An error occurred in the main execution: type object 'datetime.time' has no attribute 'time'
